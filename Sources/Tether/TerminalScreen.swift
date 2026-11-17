@@ -7,6 +7,7 @@ struct TerminalContainer: UIViewRepresentable {
     let session: SSHSession
 
     func makeUIView(context: Context) -> UIView {
+        Diagnostics.log("terminal view attach")
         let container = UIView()
         container.backgroundColor = session.terminalView.backgroundColor
         let tv = session.terminalView

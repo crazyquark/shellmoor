@@ -2,8 +2,13 @@ import SwiftUI
 
 @main
 struct TetherApp: App {
-    @State private var store = Store()
+    @State private var store: Store
     @State private var sessions = SessionManager()
+
+    init() {
+        Diagnostics.start()
+        _store = State(initialValue: Store())
+    }
 
     var body: some Scene {
         WindowGroup {

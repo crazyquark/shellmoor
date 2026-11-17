@@ -73,6 +73,7 @@ final class SSHSession: NSObject, Identifiable, TerminalViewDelegate {
 
     func connect() {
         guard !state.isLive else { return }
+        Diagnostics.log("connect \(host.hostname):\(host.port) auth=\(host.auth.rawValue)")
         state = .connecting
         terminalView.feed(text: "\u{1b}[2mConnecting to \(host.address)…\u{1b}[0m\r\n")
 
@@ -105,6 +106,7 @@ final class SSHSession: NSObject, Identifiable, TerminalViewDelegate {
     }
 
     private func handle(_ event: SSHConnection.Event) {
+        if case .data = event {} else { Diagnostics.log("event \(event)") }
         switch event {
         case .connected:
             state = .authenticating
@@ -147,6 +149,7 @@ final class SSHSession: NSObject, Identifiable, TerminalViewDelegate {
     // MARK: Prompts
 
     private func verifyHostKey(_ line: String, reply: @escaping (Bool) -> Void) {
+        Diagnostics.log("verify host key \(KeyManager.fingerprint(openSSHLine: line))")
         let known = store.knownHosts[knownHostID]
         if known == line { return reply(true) }
         hostKeyReply = reply

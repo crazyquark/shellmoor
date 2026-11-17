@@ -33,7 +33,8 @@ struct SettingsView: View {
                     NavigationLink("Known Hosts (\(store.knownHosts.count))") { KnownHostsView() }
                 } header: { Text("Security") }
                 Section {
-                    LabeledContent("Version", value: "1.0")
+                    NavigationLink("Diagnostic Log") { DiagnosticsView() }
+                    LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")
                     LabeledContent("Engine", value: "SwiftNIO SSH · SwiftTerm")
                 }
             }
@@ -83,5 +84,24 @@ struct KnownHostsView: View {
         }
         .overlay { if store.knownHosts.isEmpty { ContentUnavailableView("No known hosts", systemImage: "checkmark.shield") } }
         .navigationTitle("Known Hosts")
+    }
+}
+
+struct DiagnosticsView: View {
+    @State private var text = Diagnostics.read()
+    var body: some View {
+        ScrollView {
+            Text(text.isEmpty ? "Log is empty." : text)
+                .font(.caption2.monospaced())
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+        }
+        .navigationTitle("Diagnostic Log")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ShareLink(item: Diagnostics.logURL)
+            Button("Clear") { Diagnostics.clear(); text = "" }
+        }
     }
 }
