@@ -28,7 +28,12 @@ let package = Package(
                 .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
             ],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            // xtool links dependencies as static archives, and the linker drops archive
+            // members nothing references by symbol. Protocol conformances (e.g. swift-atomics'
+            // `Bool: AtomicValue`, needed by every SwiftNIO channel) are only found at runtime,
+            // so without this they're missing and `ManagedAtomic<Bool>()` crashes.
+            linkerSettings: [.unsafeFlags(["-Xlinker", "-all_load"])]
         ),
     ]
 )
