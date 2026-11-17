@@ -2,6 +2,10 @@ import Foundation
 import NIOCore
 import NIOPosix
 import NIOSSH
+#if canImport(Network)
+import Network
+import NIOTransportServices
+#endif
 
 enum SessionError: LocalizedError {
     case authFailed, hostKeyRejected, cancelled, noShell
@@ -42,7 +46,14 @@ final class SSHConnection: @unchecked Sendable {
     var requestPassword: (_ completion: @escaping (String?) -> Void) -> Void = { c in c(nil) }
     var onEvent: (Event) -> Void = { _ in }
 
-    static let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    /// On Apple platforms use Network.framework (NIO Transport Services), which is what
+    /// SwiftNIO recommends on iOS; NIO's POSIX sockets crash when Tether runs inside
+    /// LiveContainer. Elsewhere (the Linux test harness) use POSIX sockets.
+    #if canImport(Network)
+    static let group: EventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)
+    #else
+    static let group: EventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+    #endif
 
     private let config: Config
     private let callbackQueue: DispatchQueue
@@ -66,22 +77,37 @@ final class SSHConnection: @unchecked Sendable {
                                 key: config.privateKey, storedPassword: config.storedPassword)
         let serverAuth = HostKeyDelegate(connection: self)
 
-        let bootstrap = ClientBootstrap(group: Self.group)
+        let initializer: @Sendable (Channel) -> EventLoopFuture<Void> = { [weak self] channel in
+            channel.eventLoop.makeCompletedFuture {
+                let ssh = NIOSSHHandler(
+                    role: .client(.init(userAuthDelegate: auth, serverAuthDelegate: serverAuth)),
+                    allocator: channel.allocator,
+                    inboundChildChannelInitializer: nil)
+                try channel.pipeline.syncOperations.addHandler(ssh)
+                try channel.pipeline.syncOperations.addHandler(RootErrorHandler(connection: self))
+            }
+        }
+
+        #if canImport(Network)
+        let tcp = NWProtocolTCP.Options()
+        tcp.noDelay = true
+        tcp.enableKeepalive = true
+        tcp.keepaliveIdle = 30
+        let connecting = NIOTSConnectionBootstrap(group: Self.group)
+            .connectTimeout(.seconds(15))
+            .tcpOptions(tcp)
+            .channelInitializer(initializer)
+            .connect(host: config.hostname, port: config.port)
+        #else
+        let connecting = ClientBootstrap(group: Self.group)
             .connectTimeout(.seconds(15))
             .channelOption(ChannelOptions.socket(SocketOptionLevel(IPPROTO_TCP), TCP_NODELAY), value: 1)
             .channelOption(ChannelOptions.socket(SocketOptionLevel(SOL_SOCKET), SO_KEEPALIVE), value: 1)
-            .channelInitializer { [weak self] channel in
-                channel.eventLoop.makeCompletedFuture {
-                    let ssh = NIOSSHHandler(
-                        role: .client(.init(userAuthDelegate: auth, serverAuthDelegate: serverAuth)),
-                        allocator: channel.allocator,
-                        inboundChildChannelInitializer: nil)
-                    try channel.pipeline.syncOperations.addHandler(ssh)
-                    try channel.pipeline.syncOperations.addHandler(RootErrorHandler(connection: self))
-                }
-            }
+            .channelInitializer(initializer)
+            .connect(host: config.hostname, port: config.port)
+        #endif
 
-        bootstrap.connect(host: config.hostname, port: config.port).whenComplete { [weak self] result in
+        connecting.whenComplete { [weak self] result in
             guard let self else { return }
             switch result {
             case .failure(let error):
@@ -191,6 +217,10 @@ final class SSHConnection: @unchecked Sendable {
             return "Couldn't reach the server."
         }
         if error is ChannelError { return "Connection failed (\(error))." }
+        #if canImport(Network)
+        if let e = error as? NWError { return "Couldn't reach the server: \(e.debugDescription)" }
+        if error is NIOTSErrors.InvalidChannelStateTransition { return "Connection failed (\(error))." }
+        #endif
         if let ssh = error as? NIOSSHError { return "SSH error: \(ssh)" }
         return String(describing: error)
     }
