@@ -12,6 +12,16 @@ An SSH terminal for iPhone and iPad, built with SwiftUI and [xtool](https://gith
 - **Clips**: one-tap commands in a bar under the terminal, global or per server
 - **Themes**: Harbor, Ember, Phosphor, Paper and Dusk, plus font size, Option-as-Meta and haptic bell
 
+## Install
+
+Add this source in SideStore or AltStore:
+
+```
+https://raw.githubusercontent.com/crazyquark/tether/main/source.json
+```
+
+Or download `Tether.ipa` from the [latest release](https://github.com/crazyquark/tether/releases/latest).
+
 ## Build
 
 ```sh
@@ -19,6 +29,14 @@ xtool dev build          # unsigned .app in xtool/
 xtool auth login         # once, with your Apple ID
 xtool dev                # build, sign, install and launch on a connected device
 ```
+
+## Release
+
+```sh
+scripts/release.sh 1.0.1 "What's new"
+```
+
+This builds the .ipa, bumps the version in `Info.plist`, creates the GitHub release, and adds the release to `source.json`.
 
 ## Layout
 

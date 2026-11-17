@@ -1,2 +1,4 @@
 version: 1
-bundleID: dev.tether.Tether
+bundleID: io.github.crazyquark.tether
+infoPath: Info.plist
+iconPath: Resources/AppIcon.png

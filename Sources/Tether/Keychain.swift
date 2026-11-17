@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum Keychain {
-    private static let service = "dev.tether.Tether"
+    private static let service = "io.github.crazyquark.tether"
 
     static func set(_ data: Data, account: String) {
         let query: [String: Any] = [
