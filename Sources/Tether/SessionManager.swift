@@ -1,0 +1,23 @@
+import Foundation
+import Observation
+
+@Observable
+final class SessionManager {
+    var sessions: [SSHSession] = []
+
+    func open(_ host: Host, store: Store) -> SSHSession {
+        let s = SSHSession(host: host, store: store)
+        sessions.append(s)
+        s.connect()
+        return s
+    }
+
+    func session(_ id: UUID) -> SSHSession? { sessions.first { $0.id == id } }
+
+    func close(_ session: SSHSession) {
+        session.disconnect()
+        sessions.removeAll { $0.id == session.id }
+    }
+
+    func refreshAppearance() { sessions.forEach { $0.applyAppearance() } }
+}

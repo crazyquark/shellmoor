@@ -1,0 +1,8 @@
+.DS_Store
+/.build
+/xtool
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/
+Tests/LinuxHarness/.build
