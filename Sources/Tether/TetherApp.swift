@@ -4,10 +4,15 @@ import SwiftUI
 struct TetherApp: App {
     @State private var store: Store
     @State private var sessions = SessionManager()
+    @State private var sync: ConfigSync
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         Diagnostics.start()
-        _store = State(initialValue: Store())
+        let store = Store()
+        _store = State(initialValue: store)
+        _sync = State(initialValue: ConfigSync(store: store))
+        Keychain.migrateAll()
     }
 
     var body: some Scene {
@@ -15,7 +20,11 @@ struct TetherApp: App {
             RootView()
                 .environment(store)
                 .environment(sessions)
+                .environment(sync)
                 .tint(Color(red: 0.95, green: 0.60, blue: 0.30))
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { sync.pull() }
         }
     }
 }

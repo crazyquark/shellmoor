@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(Store.self) private var store
@@ -29,6 +30,7 @@ struct SettingsView: View {
                         .foregroundStyle(.primary)
                     }
                 }
+                SyncSection()
                 Section {
                     NavigationLink("Known Hosts (\(store.knownHosts.count))") { KnownHostsView() }
                 } header: { Text("Security") }
@@ -39,6 +41,58 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+        }
+    }
+}
+
+struct SyncSection: View {
+    @Environment(ConfigSync.self) private var sync
+    @State private var picking = false
+    @State private var keychainSync = Keychain.synchronizable
+    @State private var keychainStatus = Keychain.statusDescription
+
+    var body: some View {
+        @Bindable var sync = sync
+        Section {
+            if let name = sync.folderName {
+                LabeledContent("Folder", value: name)
+                LabeledContent("Status", value: sync.status)
+                if let last = sync.lastSync {
+                    LabeledContent("Last sync", value: last.formatted(date: .omitted, time: .shortened))
+                }
+                Button("Sync Now") { sync.pull() }
+                Button("Change Folder…") { picking = true }
+                Button("Stop Syncing Config", role: .destructive) { sync.unlink() }
+            } else {
+                Button("Choose iCloud Drive Folder…") { picking = true }
+            }
+            Toggle("Keys & Passwords in iCloud Keychain", isOn: $keychainSync)
+                .onChange(of: keychainSync) { _, on in
+                    Keychain.synchronizable = on
+                    Keychain.migrateAll()
+                    keychainStatus = Keychain.statusDescription
+                }
+            Text(keychainStatus).font(.footnote).foregroundStyle(.secondary)
+        } header: {
+            Text("Sync")
+        } footer: {
+            Text("Servers, key names, clips, known hosts and settings are saved as “\(ConfigSync.fileName)” in the chosen folder. Private keys and passwords never go in that file; they sync through iCloud Keychain. Install Tether on each device with the same Apple ID.")
+        }
+        .onAppear { keychainStatus = Keychain.statusDescription }
+        .fileImporter(isPresented: $picking, allowedContentTypes: [.folder]) { result in
+            if case .success(let url) = result { sync.link(folder: url) }
+        }
+        .confirmationDialog("This folder already has a Tether config",
+                            isPresented: Binding(get: { sync.conflict != nil },
+                                                 set: { if !$0, sync.conflict != nil { sync.unlink() } }),
+                            titleVisibility: .visible) {
+            Button("Use the Folder's Copy") { sync.resolveConflict(useRemote: true) }
+            Button("Replace It with This Device's") { sync.resolveConflict(useRemote: false) }
+            Button("Cancel", role: .cancel) { sync.unlink() }
+        } message: {
+            if let c = sync.conflict {
+                Text("The folder copy has \(c.hosts.count) servers and \(c.keys.count) keys. Choosing one replaces the other.")
+            }
         }
     }
 }
