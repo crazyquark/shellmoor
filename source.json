@@ -25,6 +25,15 @@
       },
       "versions": [
         {
+          "version": "1.1.1",
+          "buildVersion": "8",
+          "date": "2026-11-18T09:56:17Z",
+          "localizedDescription": "Detaching tmux/byobu or logging out now closes the session instead of showing 'I/O on closed channel'. A non-zero exit keeps the session open with its exit status. Also fixes the passphrase setup dialog closing when you moved to the second field.",
+          "downloadURL": "https://github.com/crazyquark/tether/releases/download/v1.1.1/Tether.ipa",
+          "size": 15054262,
+          "minOSVersion": "17.0"
+        },
+        {
           "version": "1.1.0",
           "buildVersion": "7",
           "date": "2026-11-18T08:44:44Z",
