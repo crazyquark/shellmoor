@@ -15,7 +15,8 @@ struct TerminalContainer: UIViewRepresentable {
         tv.frame = container.bounds
         tv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         container.addSubview(tv)
-        DispatchQueue.main.async { _ = tv.becomeFirstResponder() }
+        // No keyboard in App Store screenshots: it would hide half the session.
+        if !ScreenshotMode.isActive { DispatchQueue.main.async { _ = tv.becomeFirstResponder() } }
         return container
     }
 
