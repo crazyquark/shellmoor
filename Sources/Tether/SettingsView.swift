@@ -101,40 +101,32 @@ struct SyncSection: View {
 /// Status and actions for the passphrase-encrypted secrets file.
 struct VaultRows: View {
     @Environment(ConfigSync.self) private var sync
-    private enum Prompt: Identifiable { case setUp, unlock, change; var id: Self { self } }
-    @State private var prompt: Prompt?
-    @State private var first = ""
-    @State private var second = ""
-    @State private var mismatch = false
+    @State private var prompt: PassphraseSheet.Mode?
 
     var body: some View {
         Group { rows }
-            .alert(title, isPresented: Binding(get: { prompt != nil }, set: { if !$0 { prompt = nil } })) {
-                SecureField("Passphrase", text: $first)
-                if prompt != .unlock { SecureField("Repeat passphrase", text: $second) }
-                Button("Cancel", role: .cancel) {}
-                Button(prompt == .unlock ? "Unlock" : "Save") { submit() }
-            } message: {
-                Text(message)
+            .sheet(item: $prompt) { mode in
+                PassphraseSheet(mode: mode) { passphrase in
+                    if mode == .unlock { sync.unlock(passphrase) } else { sync.setPassphrase(passphrase) }
+                }
             }
-            .alert("Passphrases don’t match", isPresented: $mismatch) { Button("OK") {} }
     }
 
     @ViewBuilder private var rows: some View {
         switch sync.vault {
         case .notSetUp:
             LabeledContent("Keys & passwords", value: "Not backed up")
-            Button("Set Up Secrets Passphrase…") { ask(.setUp) }
+            Button("Set Up Secrets Passphrase…") { prompt = .setUp }
         case .locked(let reason):
             VStack(alignment: .leading, spacing: 2) {
                 LabeledContent("Keys & passwords", value: "Locked")
                 Text(reason).font(.footnote).foregroundStyle(.orange)
             }
-            Button("Enter Passphrase…") { ask(.unlock) }
-            Button("Forgot It? Set a New One…") { ask(.change) }
+            Button("Enter Passphrase…") { prompt = .unlock }
+            Button("Forgot It? Set a New One…") { prompt = .change }
         case .unlocked(let n):
             LabeledContent("Keys & passwords", value: "\(n) encrypted")
-            Button("Change Passphrase…") { ask(.change) }
+            Button("Change Passphrase…") { prompt = .change }
         case .working(let s):
             LabeledContent(s) { ProgressView() }
         case .failed(let s):
@@ -146,30 +138,81 @@ struct VaultRows: View {
         }
     }
 
+}
+
+/// Passphrase entry. A sheet rather than an alert: an alert with two secure fields dismissed
+/// itself when moving from the first field to the second.
+struct PassphraseSheet: View {
+    enum Mode: Identifiable { case setUp, unlock, change; var id: Self { self } }
+    let mode: Mode
+    let onSubmit: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var first = ""
+    @State private var second = ""
+    @FocusState private var focus: Field?
+    private enum Field { case first, second }
+
+    private var confirming: Bool { mode != .unlock }
+    private var mismatch: Bool { confirming && !second.isEmpty && first != second }
+    private var valid: Bool { !first.isEmpty && (!confirming || first == second) }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    SecureField("Passphrase", text: $first)
+                        .focused($focus, equals: .first)
+                        .submitLabel(confirming ? .next : .done)
+                        .onSubmit { if confirming { focus = .second } else { submit() } }
+                    if confirming {
+                        SecureField("Repeat passphrase", text: $second)
+                            .focused($focus, equals: .second)
+                            .submitLabel(.done)
+                            .onSubmit(submit)
+                    }
+                } footer: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        if mismatch { Text("Passphrases don’t match.").foregroundStyle(.red) }
+                        Text(message)
+                    }
+                }
+            }
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(mode == .unlock ? "Unlock" : "Save", action: submit).disabled(!valid)
+                }
+            }
+            .onAppear { focus = .first }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func submit() {
+        guard valid else { return }
+        onSubmit(first)
+        dismiss()
+    }
+
     private var title: String {
-        switch prompt {
+        switch mode {
         case .unlock: return "Enter Passphrase"
         case .change: return "New Passphrase"
-        default: return "Secrets Passphrase"
+        case .setUp: return "Secrets Passphrase"
         }
     }
 
     private var message: String {
-        switch prompt {
+        switch mode {
         case .unlock: return "The passphrase you chose on your other device."
         case .change: return "Your other devices will ask for the new passphrase. If you forgot the old one, secrets only on other devices are lost."
-        default: return "Encrypts your keys and passwords in the sync folder. You’ll enter it once on each device. It can’t be recovered."
+        case .setUp: return "Encrypts your keys and passwords in the sync folder. You’ll enter it once on each device. It can’t be recovered."
         }
-    }
-
-    private func ask(_ p: Prompt) { first = ""; second = ""; prompt = p }
-
-    private func submit() {
-        let p = prompt; prompt = nil
-        guard !first.isEmpty else { return }
-        if p == .unlock { sync.unlock(first); return }
-        guard first == second else { mismatch = true; return }
-        sync.setPassphrase(first)
     }
 }
 
