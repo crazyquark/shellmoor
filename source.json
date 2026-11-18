@@ -16,7 +16,30 @@
       "iconURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/Resources/AppIcon.png",
       "tintColor": "#F2A65A",
       "category": "developer",
-      "screenshots": [],
+      "screenshots": {
+        "iphone": [
+          {
+            "imageURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/docs/screenshots/1-servers.png",
+            "width": 1320,
+            "height": 2868
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/docs/screenshots/2-terminal.png",
+            "width": 1320,
+            "height": 2868
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/docs/screenshots/3-keys.png",
+            "width": 1320,
+            "height": 2868
+          },
+          {
+            "imageURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/docs/screenshots/4-settings.png",
+            "width": 1320,
+            "height": 2868
+          }
+        ]
+      },
       "appPermissions": {
         "entitlements": [],
         "privacy": {
@@ -31,24 +54,6 @@
           "localizedDescription": "Tether is now Shellmoor. It installs as a new app: pick the same sync folder and enter your passphrase, and your servers, keys and settings come back (the old Tether sync files are read automatically). Afterwards you can delete Tether.",
           "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.2.0/Shellmoor.ipa",
           "size": 15091179,
-          "minOSVersion": "17.0"
-        },
-        {
-          "version": "1.1.1",
-          "buildVersion": "8",
-          "date": "2026-11-18T09:56:17Z",
-          "localizedDescription": "Detaching tmux/byobu or logging out now closes the session instead of showing 'I/O on closed channel'. A non-zero exit keeps the session open with its exit status. Also fixes the passphrase setup dialog closing when you moved to the second field.",
-          "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.1.1/Tether.ipa",
-          "size": 15054262,
-          "minOSVersion": "17.0"
-        },
-        {
-          "version": "1.1.0",
-          "buildVersion": "7",
-          "date": "2026-11-18T08:44:44Z",
-          "localizedDescription": "Sync: pick a folder in iCloud Drive to keep servers, clips, known hosts and settings in step across devices. Keys and passwords are backed up next to them, encrypted with your passphrase, so a reinstall or a new device only needs the passphrase. Also fixes a crash when opening a connection.",
-          "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.1.0/Tether.ipa",
-          "size": 14987526,
           "minOSVersion": "17.0"
         }
       ]

@@ -5,6 +5,8 @@ An SSH terminal for iPhone and iPad, built with SwiftUI and [xtool](https://gith
 Shellmoor was called Tether until 1.1.1. It has a new bundle ID, so it installs as a new app. Pick the same sync
 folder and it reads the old `Tether Config.json` and `Tether Secrets.json`, so your servers and keys come along.
 
+<p><img src="docs/screenshots/1-servers.png" width="200" alt="servers"> <img src="docs/screenshots/2-terminal.png" width="200" alt="terminal"> <img src="docs/screenshots/3-keys.png" width="200" alt="keys"> <img src="docs/screenshots/4-settings.png" width="200" alt="settings"></p>
+
 ## Features
 
 - **Servers**: saved hosts with groups, search, duplicate, a startup command and a per-server theme
