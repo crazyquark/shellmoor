@@ -81,7 +81,7 @@ This builds the .ipa, bumps the version in `Info.plist`, creates the GitHub rele
 | `Store.swift` | JSON persistence (secrets go to the Keychain) |
 | `ConfigSync.swift` | Sync folder: config file and encrypted secrets file, newest wins |
 | `SecretVault.swift` | Passphrase-encrypted container for Keychain items |
-| `Vendor/SwiftTerm` | SwiftTerm 1.20.0. Its manifest is patched so the iOS sources build on a Linux host. |
+| `Vendor/SwiftTerm` | SwiftTerm 1.20.0. Its manifest is patched so the iOS sources build on a Linux host and in Xcode (no build-info plugin). |
 
 ## Tests
 

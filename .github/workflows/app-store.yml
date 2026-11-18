@@ -11,9 +11,6 @@
 #   ASC_KEY_ID, ASC_ISSUER_ID  App Store Connect API key (Team Key, App Manager role)
 #   ASC_KEY_P8                 contents of the AuthKey_XXXX.p8 file
 #   APPLE_TEAM_ID              your 10-character Apple Developer team ID
-#
-# SwiftTerm (Vendor/SwiftTerm) runs a build-tool plugin, which Xcode normally asks you to
-# trust; CI passes -skipPackagePluginValidation instead.
 name: App Store
 
 on:
@@ -77,7 +74,7 @@ jobs:
         if: steps.secrets.outputs.upload != 'true'
         run: >
           xcodebuild build -quiet
-          -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation
+          -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
 
@@ -93,7 +90,7 @@ jobs:
                 -authenticationKeyIssuerID "$ASC_ISSUER_ID")
 
           xcodebuild archive -quiet \
-            -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation \
+            -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Tether.xcarchive" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" "${auth[@]}"
@@ -126,7 +123,7 @@ jobs:
       - name: Build for Simulator
         run: >
           xcodebuild build -quiet
-          -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation
+          -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -derivedDataPath "$RUNNER_TEMP/dd"
           CODE_SIGNING_ALLOWED=NO
