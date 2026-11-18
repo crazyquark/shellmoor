@@ -23,7 +23,17 @@
           "NSLocalNetworkUsageDescription": "Tether connects to SSH servers on your local network."
         }
       },
-      "versions": []
+      "versions": [
+        {
+          "version": "1.1.0",
+          "buildVersion": "7",
+          "date": "2026-11-18T08:44:44Z",
+          "localizedDescription": "Sync: pick a folder in iCloud Drive to keep servers, clips, known hosts and settings in step across devices. Keys and passwords are backed up next to them, encrypted with your passphrase, so a reinstall or a new device only needs the passphrase. Also fixes a crash when opening a connection.",
+          "downloadURL": "https://github.com/crazyquark/tether/releases/download/v1.1.0/Tether.ipa",
+          "size": 14987526,
+          "minOSVersion": "17.0"
+        }
+      ]
     }
   ],
   "news": []
