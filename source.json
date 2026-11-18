@@ -25,6 +25,15 @@
       },
       "versions": [
         {
+          "version": "1.2.0",
+          "buildVersion": "9",
+          "date": "2026-11-18T22:20:01Z",
+          "localizedDescription": "Tether is now Shellmoor. It installs as a new app: pick the same sync folder and enter your passphrase, and your servers, keys and settings come back (the old Tether sync files are read automatically). Afterwards you can delete Tether.",
+          "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.2.0/Shellmoor.ipa",
+          "size": 15091179,
+          "minOSVersion": "17.0"
+        },
+        {
           "version": "1.1.1",
           "buildVersion": "8",
           "date": "2026-11-18T09:56:17Z",
