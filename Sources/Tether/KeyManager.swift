@@ -9,7 +9,7 @@ enum KeyError: LocalizedError {
         case .invalidFormat: return "That doesn't look like an OpenSSH or PEM private key."
         case .encrypted: return "Passphrase-protected keys aren't supported yet. Remove the passphrase with `ssh-keygen -p -f <key>` and import again."
         case .unsupported(let t): return "Key type \(t) isn't supported. Use an ed25519 or ECDSA P-256 key."
-        case .missing: return "The private key for this identity is not in the Keychain on this device. If it was created on another device, give iCloud Keychain a minute to sync it."
+        case .missing: return "The private key for this identity is not on this device yet. If you use a sync folder, enter your secrets passphrase in Settings → Sync to restore it."
         }
     }
 }

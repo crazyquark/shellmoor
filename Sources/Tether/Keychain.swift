@@ -20,6 +20,23 @@ enum Keychain {
     /// Result of the most recent synced write: nil = none attempted yet.
     private(set) static var lastSyncStatus: OSStatus?
 
+    /// Called after a secret is added, changed or removed (not for `local.` items or while `quietly` runs).
+    static var onChange: (() -> Void)?
+    private static var quiet = false
+
+    /// Accounts with this prefix are device-only and never synced or backed up.
+    static let localPrefix = "local."
+
+    /// Runs `body` without firing `onChange` (used when importing secrets from the sync folder).
+    static func quietly(_ body: () -> Void) {
+        quiet = true; defer { quiet = false }
+        body()
+    }
+
+    private static func notify(_ account: String) {
+        if !quiet, !account.hasPrefix(localPrefix) { onChange?() }
+    }
+
     private static func base(_ account: String?) -> [String: Any] {
         var q: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -32,10 +49,11 @@ enum Keychain {
 
     @discardableResult
     static func set(_ data: Data, account: String) -> OSStatus {
+        defer { notify(account) }
         SecItemDelete(base(account) as CFDictionary)
         var add = base(account)
         add[kSecValueData as String] = data
-        if synchronizable {
+        if synchronizable, !account.hasPrefix(localPrefix) {
             add[kSecAttrSynchronizable as String] = kCFBooleanTrue
             add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
             let status = SecItemAdd(add as CFDictionary, nil)
@@ -63,6 +81,7 @@ enum Keychain {
 
     static func delete(account: String) {
         SecItemDelete(base(account) as CFDictionary)
+        notify(account)
     }
 
     static func setString(_ s: String, account: String) { set(Data(s.utf8), account: account) }
@@ -79,6 +98,7 @@ enum Keychain {
               let rows = out as? [[String: Any]] else { return [] }
         return rows.compactMap { row in
             guard let account = row[kSecAttrAccount as String] as? String,
+                  !account.hasPrefix(localPrefix),
                   let data = row[kSecValueData as String] as? Data else { return nil }
             let synced = (row[kSecAttrSynchronizable as String] as? NSNumber)?.boolValue ?? false
             return (account, data, synced)
@@ -88,8 +108,10 @@ enum Keychain {
     /// Rewrites every item so it matches the current `synchronizable` preference.
     /// Turning sync off makes items device-only, which also removes them from iCloud Keychain.
     static func migrateAll() {
-        for item in allItems() where item.synced != synchronizable {
-            set(item.data, account: item.account)
+        quietly {
+            for item in allItems() where item.synced != synchronizable {
+                set(item.data, account: item.account)
+            }
         }
     }
 

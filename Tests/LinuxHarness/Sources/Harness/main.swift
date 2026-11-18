@@ -32,6 +32,28 @@ let fp = KeyManager.fingerprint(openSSHLine: try! String(contentsOfFile: "\(dir)
 let expectedFP = try! String(contentsOfFile: "\(dir)/fp.txt", encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
 check(fp == expectedFP, "fingerprint matches ssh-keygen -l (\(fp))")
 
+// 1b. Encrypted secrets file
+do {
+    let items = ["key.A": Data("ed25519:AAAA".utf8), "password.B": Data("hunter2".utf8)]
+    let key = try SecretVault.newKey(passphrase: "correct horse")
+    let file = try SecretVault.seal(items, key: key)
+    let json = try SecretVault.encoder.encode(file)
+    check(!String(decoding: json, as: UTF8.self).contains("hunter2"), "secrets file does not contain plaintext")
+    let back = try SecretVault.decoder.decode(VaultFile.self, from: json)
+    check(back == file, "secrets file JSON round-trips (exact modifiedAt)")
+    let legacy = try SecretVault.decoder.decode([String: Date].self, from: Data(#"{"d":"2026-11-17T20:00:00Z"}"#.utf8))
+    check(legacy["d"] == ISO8601DateFormatter().date(from: "2026-11-17T20:00:00Z"), "1.0.4 ISO dates still decode")
+    let (k2, opened) = try SecretVault.unlock(back, passphrase: "correct horse")
+    check(opened == items && k2 == key, "right passphrase opens and derives the same key")
+    check(try SecretVault.open(back, key: k2) == items, "cached key opens the file")
+    do { _ = try SecretVault.unlock(back, passphrase: "wrong"); check(false, "wrong passphrase should fail") }
+    catch { check((error as? VaultError).map { if case .wrongPassphrase = $0 { return true }; return false } ?? false, "wrong passphrase rejected") }
+    let other = try SecretVault.newKey(passphrase: "correct horse")
+    check(!other.matches(file), "new salt is detected as a changed passphrase")
+    do { _ = try SecretVault.newKey(passphrase: ""); check(false, "empty passphrase should fail") }
+    catch { check(true, "empty passphrase rejected") }
+} catch { check(false, "vault: \(error)") }
+
 // 2. Live sessions against local sshd
 let q = DispatchQueue(label: "cb")
 func session(key: SSHKeyRecord?, trust: Bool, input: String, cols: Int = 80) -> (output: String, closed: String??, sawHostKey: String?) {
