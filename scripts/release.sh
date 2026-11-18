@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build Tether, publish it as a GitHub release, and add it to the
+# Build Shellmoor, publish it as a GitHub release, and add it to the
 # SideStore/AltStore source (source.json).
 #
 # Usage: scripts/release.sh <version> "<what's new>"
@@ -12,7 +12,7 @@ if [[ $# -ne 2 ]]; then
 fi
 version="$1"
 notes="$2"
-repo="crazyquark/tether"
+repo="crazyquark/shellmoor"
 tag="v$version"
 
 cd "$(dirname "$0")/.."
@@ -31,18 +31,18 @@ build=$(python3 -I scripts/source.py bump-version Info.plist "$version")
 echo "Building $version ($build)..."
 
 xtool dev build --ipa -c release
-ipa=xtool/Tether.ipa
+ipa=xtool/Shellmoor.ipa
 
 git add Info.plist
 git commit -q -m "Release $version"
 git tag "$tag"
 git push -q origin HEAD "$tag"
 
-gh release create "$tag" "$ipa" --repo "$repo" --title "Tether $version" --notes "$notes"
+gh release create "$tag" "$ipa" --repo "$repo" --title "Shellmoor $version" --notes "$notes"
 
 # Point the source at the new release and publish it.
 python3 -I scripts/source.py add-version source.json "$version" "$build" "$notes" \
-    "https://github.com/$repo/releases/download/$tag/Tether.ipa" "$ipa"
+    "https://github.com/$repo/releases/download/$tag/Shellmoor.ipa" "$ipa"
 git add source.json
 git commit -q -m "Source: add $version"
 git push -q origin HEAD

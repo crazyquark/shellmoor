@@ -1,4 +1,4 @@
-# Builds Tether with Xcode on a GitHub macOS runner.
+# Builds Shellmoor with Xcode on a GitHub macOS runner.
 #
 # - testflight: on every v* tag (scripts/release.sh pushes one) or by hand.
 #   Archives, signs with Xcode cloud signing and uploads to App Store Connect /
@@ -75,7 +75,7 @@ jobs:
         if: steps.secrets.outputs.upload != 'true'
         run: >
           xcodebuild build -quiet
-          -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation
+          -project Shellmoor.xcodeproj -scheme Shellmoor -configuration Release -skipMacroValidation
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
 
@@ -91,13 +91,13 @@ jobs:
                 -authenticationKeyIssuerID "$ASC_ISSUER_ID")
 
           xcodebuild archive -quiet \
-            -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation \
+            -project Shellmoor.xcodeproj -scheme Shellmoor -configuration Release -skipMacroValidation \
             -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/Tether.xcarchive" \
+            -archivePath "$RUNNER_TEMP/Shellmoor.xcarchive" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" "${auth[@]}"
 
           xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/Tether.xcarchive" \
+            -archivePath "$RUNNER_TEMP/Shellmoor.xcarchive" \
             -exportOptionsPlist ExportOptions.plist \
             -exportPath "$RUNNER_TEMP/export" \
             "${auth[@]}"
@@ -124,13 +124,13 @@ jobs:
       - name: Build for Simulator
         run: >
           xcodebuild build -quiet
-          -project Tether.xcodeproj -scheme Tether -configuration Release -skipMacroValidation
+          -project Shellmoor.xcodeproj -scheme Shellmoor -configuration Release -skipMacroValidation
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -derivedDataPath "$RUNNER_TEMP/dd"
           CODE_SIGNING_ALLOWED=NO
 
       - name: Take screenshots
-        run: scripts/screenshots.sh "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/Tether.app" screenshots
+        run: scripts/screenshots.sh "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/Shellmoor.app" screenshots
 
       - uses: actions/upload-artifact@v4
         with:

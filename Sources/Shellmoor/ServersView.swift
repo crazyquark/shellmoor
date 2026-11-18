@@ -72,7 +72,7 @@ struct ServersView: View {
                 }
             }
             .searchable(text: $search, prompt: "Search servers")
-            .navigationTitle("Tether")
+            .navigationTitle("Shellmoor")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { editing = Host() } label: { Image(systemName: "plus") }

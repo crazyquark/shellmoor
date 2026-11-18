@@ -1,8 +1,8 @@
-# XcodeGen spec for building Tether with Xcode (App Store uploads and screenshots in CI).
+# XcodeGen spec for building Shellmoor with Xcode (App Store uploads and screenshots in CI).
 # Day-to-day builds use xtool (Package.swift + xtool.yml); both build the same sources and
 # packages. Run scripts/xcode-prepare.sh, not xcodegen directly: it creates the .xcode/
 # inputs this spec refers to.
-name: Tether
+name: Shellmoor
 options:
   deploymentTarget:
     iOS: "17.0"
@@ -26,11 +26,11 @@ packages:
     url: https://github.com/apple/swift-nio-transport-services.git
     from: 1.28.0
 targets:
-  Tether:
+  Shellmoor:
     type: application
     platform: iOS
     sources:
-      - path: Sources/Tether
+      - path: Sources/Shellmoor
       - path: .xcode/Assets.xcassets
     dependencies:
       - package: SwiftTerm
@@ -49,11 +49,11 @@ targets:
     scheme: {}
     settings:
       base:
-        PRODUCT_NAME: Tether
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.crazyquark.tether
+        PRODUCT_NAME: Shellmoor
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.crazyquark.shellmoor
         INFOPLIST_FILE: .xcode/Info.plist
-        MARKETING_VERSION: ${TETHER_VERSION}
-        CURRENT_PROJECT_VERSION: ${TETHER_BUILD}
+        MARKETING_VERSION: ${SHELLMOOR_VERSION}
+        CURRENT_PROJECT_VERSION: ${SHELLMOOR_BUILD}
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic

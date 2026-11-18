@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Tether</string>
+	<string>Shellmoor</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.1.1</string>
 	<key>CFBundleVersion</key>
@@ -11,7 +11,7 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Tether connects to SSH servers on your local network.</string>
+	<string>Shellmoor connects to SSH servers on your local network.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 </dict>

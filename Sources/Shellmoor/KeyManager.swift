@@ -68,7 +68,7 @@ enum KeyManager {
     private static func store(name: String, type: String, blob: String, key: NIOSSHPrivateKey) -> SSHKeyRecord {
         let pub = String(openSSHPublicKey: key.publicKey)
         let comment = name.replacingOccurrences(of: " ", with: "-")
-        let record = SSHKeyRecord(name: name, type: type, publicKey: "\(pub) \(comment)@tether")
+        let record = SSHKeyRecord(name: name, type: type, publicKey: "\(pub) \(comment)@shellmoor")
         Keychain.setString(blob, account: record.keychainAccount)
         return record
     }

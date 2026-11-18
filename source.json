@@ -1,26 +1,26 @@
 {
-  "name": "Tether",
-  "identifier": "io.github.crazyquark.tether.source",
+  "name": "Shellmoor",
+  "identifier": "io.github.crazyquark.shellmoor.source",
   "subtitle": "An SSH terminal for iPhone and iPad.",
-  "description": "Tether: a fast, private SSH client. No accounts, no subscriptions; your servers and keys stay on your devices.",
-  "iconURL": "https://raw.githubusercontent.com/crazyquark/tether/main/Resources/AppIcon.png",
-  "website": "https://github.com/crazyquark/tether",
+  "description": "Shellmoor: a fast, private SSH client. No accounts, no subscriptions; your servers and keys stay on your devices.",
+  "iconURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/Resources/AppIcon.png",
+  "website": "https://github.com/crazyquark/shellmoor",
   "tintColor": "#F2A65A",
   "apps": [
     {
-      "name": "Tether",
-      "bundleIdentifier": "io.github.crazyquark.tether",
+      "name": "Shellmoor",
+      "bundleIdentifier": "io.github.crazyquark.shellmoor",
       "developerName": "crazyquark",
       "subtitle": "An SSH terminal for iPhone and iPad.",
       "localizedDescription": "Connect to your servers over SSH from your iPhone or iPad.\n\n• Save servers with groups, a startup command (e.g. tmux) and a per-server theme\n• Keep several sessions open at once and come back to them with scrollback intact\n• Full xterm-256color terminal with an Esc/Ctrl/Tab/arrow key row, mouse support for TUI apps, and clipboard\n• Generate Ed25519 or ECDSA keys on the device, or import OpenSSH/PEM keys; private keys live in the Keychain\n• Host key verification with a clear warning when a server's key changes\n• Clips: one-tap commands in a bar under the terminal, global or per server\n• Sync servers, clips and settings through a folder in iCloud Drive; keys and passwords travel alongside, encrypted with your passphrase\n• Five themes, adjustable font size, Option as Meta\n\nNo accounts, no tracking.",
-      "iconURL": "https://raw.githubusercontent.com/crazyquark/tether/main/Resources/AppIcon.png",
+      "iconURL": "https://raw.githubusercontent.com/crazyquark/shellmoor/main/Resources/AppIcon.png",
       "tintColor": "#F2A65A",
       "category": "developer",
       "screenshots": [],
       "appPermissions": {
         "entitlements": [],
         "privacy": {
-          "NSLocalNetworkUsageDescription": "Tether connects to SSH servers on your local network."
+          "NSLocalNetworkUsageDescription": "Shellmoor connects to SSH servers on your local network."
         }
       },
       "versions": [
@@ -29,7 +29,7 @@
           "buildVersion": "8",
           "date": "2026-11-18T09:56:17Z",
           "localizedDescription": "Detaching tmux/byobu or logging out now closes the session instead of showing 'I/O on closed channel'. A non-zero exit keeps the session open with its exit status. Also fixes the passphrase setup dialog closing when you moved to the second field.",
-          "downloadURL": "https://github.com/crazyquark/tether/releases/download/v1.1.1/Tether.ipa",
+          "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.1.1/Tether.ipa",
           "size": 15054262,
           "minOSVersion": "17.0"
         },
@@ -38,7 +38,7 @@
           "buildVersion": "7",
           "date": "2026-11-18T08:44:44Z",
           "localizedDescription": "Sync: pick a folder in iCloud Drive to keep servers, clips, known hosts and settings in step across devices. Keys and passwords are backed up next to them, encrypted with your passphrase, so a reinstall or a new device only needs the passphrase. Also fixes a crash when opening a connection.",
-          "downloadURL": "https://github.com/crazyquark/tether/releases/download/v1.1.0/Tether.ipa",
+          "downloadURL": "https://github.com/crazyquark/shellmoor/releases/download/v1.1.0/Tether.ipa",
           "size": 14987526,
           "minOSVersion": "17.0"
         }

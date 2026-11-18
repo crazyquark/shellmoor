@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Take App Store screenshots on the required simulator sizes (macOS + Xcode).
 #
-# Usage: scripts/screenshots.sh <path/to/Tether.app (simulator build)> <output dir>
+# Usage: scripts/screenshots.sh <path/to/Shellmoor.app (simulator build)> <output dir>
 #
-# The app's screenshot mode (Sources/Tether/ScreenshotMode.swift) fills
+# The app's screenshot mode (Sources/Shellmoor/ScreenshotMode.swift) fills
 # it with demo content and opens each screen.
 set -euo pipefail
-app="${1:?usage: scripts/screenshots.sh <Tether.app> <output dir>}"
-out="${2:?usage: scripts/screenshots.sh <Tether.app> <output dir>}"
-bundle=io.github.crazyquark.tether
+app="${1:?usage: scripts/screenshots.sh <Shellmoor.app> <output dir>}"
+out="${2:?usage: scripts/screenshots.sh <Shellmoor.app> <output dir>}"
+bundle=io.github.crazyquark.shellmoor
 screens=(servers terminal keys settings)
 
 # Newest available iOS runtime; download one if the selected Xcode has none.
@@ -57,7 +57,7 @@ for spec in 'iphone-6.9|^iPhone \d+ Pro Max$' 'ipad-13|^iPad Pro 13-inch'; do
     n=1
     for screen in "${screens[@]}"; do
         xcrun simctl terminate "$udid" "$bundle" 2>/dev/null || true
-        xcrun simctl launch "$udid" "$bundle" -TetherScreenshot "$screen" >/dev/null
+        xcrun simctl launch "$udid" "$bundle" -ShellmoorScreenshot "$screen" >/dev/null
         sleep 6 # launch, push the screen, settle animations
         xcrun simctl io "$udid" screenshot "$out/$label/$n-$screen.png"
         n=$((n + 1))

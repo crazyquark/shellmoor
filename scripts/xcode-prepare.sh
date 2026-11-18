@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate Tether.xcodeproj (macOS, needs XcodeGen: brew install xcodegen).
+# Generate Shellmoor.xcodeproj (macOS, needs XcodeGen: brew install xcodegen).
 #
 # Usage: scripts/xcode-prepare.sh [build-suffix]
 #   build-suffix: appended to the build number (CI passes the run number), so
@@ -10,8 +10,8 @@ mkdir -p .xcode
 
 # Info.plist: xtool's file plus the keys xtool adds itself, for Xcode.
 # (Separate .py file: macOS's bash 3.2 mangles a heredoc inside "< <(...)".)
-read -r TETHER_VERSION TETHER_BUILD < <(python3 -I scripts/xcode_info.py Info.plist .xcode/Info.plist "${1:-}")
-export TETHER_VERSION TETHER_BUILD
+read -r SHELLMOOR_VERSION SHELLMOOR_BUILD < <(python3 -I scripts/xcode_info.py Info.plist .xcode/Info.plist "${1:-}")
+export SHELLMOOR_VERSION SHELLMOOR_BUILD
 
 # App icon asset catalog, from the same PNG xtool uses.
 icon=.xcode/Assets.xcassets/AppIcon.appiconset
@@ -28,4 +28,4 @@ cat > "$icon/Contents.json" <<'JSON'
 JSON
 
 xcodegen generate --quiet
-echo "Generated Tether.xcodeproj: version $TETHER_VERSION, build $TETHER_BUILD"
+echo "Generated Shellmoor.xcodeproj: version $SHELLMOOR_VERSION, build $SHELLMOOR_BUILD"

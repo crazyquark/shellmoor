@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct TetherApp: App {
+struct ShellmoorApp: App {
     @State private var store: Store
     @State private var sessions: SessionManager
     @State private var sync: ConfigSync

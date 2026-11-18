@@ -8,7 +8,7 @@ import Security
 /// If the system refuses a synced write (possible inside LiveContainer), the item is stored
 /// device-only instead and the failure is recorded in `lastSyncStatus` and the diagnostic log.
 enum Keychain {
-    private static let service = "io.github.crazyquark.tether"
+    private static let service = "io.github.crazyquark.shellmoor"
     private static let syncDefaultsKey = "keychain.iCloudSync"
 
     /// Device-local preference; defaults to on.
@@ -87,7 +87,7 @@ enum Keychain {
     static func setString(_ s: String, account: String) { set(Data(s.utf8), account: account) }
     static func string(account: String) -> String? { get(account: account).flatMap { String(data: $0, encoding: .utf8) } }
 
-    /// Every item Tether owns, with whether it is currently synced.
+    /// Every item Shellmoor owns, with whether it is currently synced.
     static func allItems() -> [(account: String, data: Data, synced: Bool)] {
         var q = base(nil)
         q[kSecReturnData as String] = true

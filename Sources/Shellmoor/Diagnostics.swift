@@ -1,11 +1,11 @@
 import Foundation
 
-/// Writes a log file to Documents (visible in the Files app under "Tether") and captures
+/// Writes a log file to Documents (visible in the Files app under "Shellmoor") and captures
 /// crashes: Swift runtime errors print to stderr, which is redirected into the log, and
 /// signal/exception handlers append a backtrace.
 enum Diagnostics {
     static let logURL: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("tether.log")
+        .appendingPathComponent("shellmoor.log")
 
     static func start() {
         // Keep the log small: start over once it passes 512 KB.

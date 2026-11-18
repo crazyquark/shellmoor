@@ -48,7 +48,7 @@ final class SSHConnection: @unchecked Sendable {
     var onEvent: (Event) -> Void = { _ in }
 
     /// On Apple platforms use Network.framework (NIO Transport Services), which is what
-    /// SwiftNIO recommends on iOS; NIO's POSIX sockets crash when Tether runs inside
+    /// SwiftNIO recommends on iOS; NIO's POSIX sockets crash when Shellmoor runs inside
     /// LiveContainer. Elsewhere (the Linux test harness) use POSIX sockets.
     #if canImport(Network)
     static let group: EventLoopGroup = NIOTSEventLoopGroup(loopCount: 1, defaultQoS: .userInitiated)

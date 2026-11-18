@@ -10,8 +10,11 @@ import Observation
 /// is what brings keys and passwords back; iCloud Keychain is a bonus when it works.
 @Observable
 final class ConfigSync {
-    static let fileName = "Tether Config.json"
-    static let vaultFileName = "Tether Secrets.json"
+    static let fileName = "Shellmoor Config.json"
+    static let vaultFileName = "Shellmoor Secrets.json"
+    /// Names used before the app was renamed from Tether. Read when the new file doesn't exist yet;
+    /// the next push writes the new name, and the old files are left alone.
+    static let legacyNames = [fileName: "Tether Config.json", vaultFileName: "Tether Secrets.json"]
     private static let bookmarkKey = "sync.folderBookmark"
     private static let vaultSeenKey = "sync.vaultSeen"
     private static let vaultKeyAccount = Keychain.localPrefix + "vaultKey"
@@ -33,7 +36,7 @@ final class ConfigSync {
 
     @ObservationIgnored private let store: Store
     @ObservationIgnored private var folderURL: URL?
-    @ObservationIgnored private let queue = DispatchQueue(label: "tether.configsync", qos: .utility)
+    @ObservationIgnored private let queue = DispatchQueue(label: "shellmoor.configsync", qos: .utility)
     @ObservationIgnored private var pushWork: DispatchWorkItem?
     @ObservationIgnored private var vaultWork: DispatchWorkItem?
     @ObservationIgnored private var timer: Timer?
@@ -383,6 +386,14 @@ final class ConfigSync {
     struct FileError: Error { var message: String }
 
     private static func readFile(_ name: String, folder: URL) -> Result<Data?, FileError> {
+        let result = readOne(name, folder: folder)
+        if case .success(nil) = result, let legacy = legacyNames[name] {
+            return readOne(legacy, folder: folder)
+        }
+        return result
+    }
+
+    private static func readOne(_ name: String, folder: URL) -> Result<Data?, FileError> {
         let scoped = folder.startAccessingSecurityScopedResource()
         defer { if scoped { folder.stopAccessingSecurityScopedResource() } }
         let file = folder.appendingPathComponent(name)

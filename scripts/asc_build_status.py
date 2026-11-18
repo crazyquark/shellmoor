@@ -15,7 +15,7 @@ import urllib.request
 
 import jwt
 
-BUNDLE_ID = "io.github.crazyquark.tether"
+BUNDLE_ID = "io.github.crazyquark.shellmoor"
 API = "https://api.appstoreconnect.apple.com/v1"
 
 

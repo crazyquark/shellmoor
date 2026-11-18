@@ -3,12 +3,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Tether",
+    name: "Shellmoor",
     platforms: [
         .iOS(.v17),
     ],
     products: [
-        .library(name: "Tether", targets: ["Tether"]),
+        .library(name: "Shellmoor", targets: ["Shellmoor"]),
     ],
     dependencies: [
         .package(path: "Vendor/SwiftTerm"),
@@ -19,7 +19,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Tether",
+            name: "Shellmoor",
             dependencies: [
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
                 .product(name: "NIOSSH", package: "swift-nio-ssh"),

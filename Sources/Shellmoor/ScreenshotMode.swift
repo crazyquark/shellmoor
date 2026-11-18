@@ -2,7 +2,7 @@ import Foundation
 
 /// App Store screenshot mode, used only by `scripts/screenshots.sh` in CI.
 ///
-/// Launching with `-TetherScreenshot <screen>` (servers, terminal, keys or settings) fills the
+/// Launching with `-ShellmoorScreenshot <screen>` (servers, terminal, keys or settings) fills the
 /// app with demo servers, keys and two sessions showing canned terminal output, then opens
 /// that screen. Nothing connects anywhere. Launch arguments of the form `-key value` land in
 /// UserDefaults, so no extra parsing is needed. Without the argument this does nothing.
@@ -11,7 +11,7 @@ enum ScreenshotMode {
         case servers, terminal, keys, settings
     }
 
-    static let screen: Screen? = UserDefaults.standard.string(forKey: "TetherScreenshot").flatMap(Screen.init)
+    static let screen: Screen? = UserDefaults.standard.string(forKey: "ShellmoorScreenshot").flatMap(Screen.init)
     static var isActive: Bool { screen != nil }
 
     /// The session the terminal screenshot opens.

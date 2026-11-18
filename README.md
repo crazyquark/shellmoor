@@ -1,6 +1,9 @@
-# Tether
+# Shellmoor
 
 An SSH terminal for iPhone and iPad, built with SwiftUI and [xtool](https://github.com/xtool-org/xtool).
+
+Shellmoor was called Tether until 1.1.1. It has a new bundle ID, so it installs as a new app. Pick the same sync
+folder and it reads the old `Tether Config.json` and `Tether Secrets.json`, so your servers and keys come along.
 
 ## Features
 
@@ -10,7 +13,7 @@ An SSH terminal for iPhone and iPad, built with SwiftUI and [xtool](https://gith
 - **Keys**: generate Ed25519 / ECDSA P-256 on the device, or import OpenSSH/PEM keys. Copy or share the public key. Private keys are kept in the Keychain.
 - **Host key verification**: trust on first use, a loud warning when a key changes, and a Known Hosts manager
 - **Clips**: one-tap commands in a bar under the terminal, global or per server
-- **Sync**: pick a folder in iCloud Drive (or any Files location) and Tether keeps your servers, key names, clips, known hosts and settings there. Keys and passwords sync next to them in a file encrypted with your passphrase (PBKDF2-SHA256 + AES-256-GCM), and through iCloud Keychain when the system allows it. This needs no iCloud entitlement, so it works in sideloaded builds and LiveContainer.
+- **Sync**: pick a folder in iCloud Drive (or any Files location) and Shellmoor keeps your servers, key names, clips, known hosts and settings there. Keys and passwords sync next to them in a file encrypted with your passphrase (PBKDF2-SHA256 + AES-256-GCM), and through iCloud Keychain when the system allows it. This needs no iCloud entitlement, so it works in sideloaded builds and LiveContainer.
 - **Themes**: Harbor, Ember, Phosphor, Paper and Dusk, plus font size, Option-as-Meta and haptic bell
 
 ## Install
@@ -18,10 +21,10 @@ An SSH terminal for iPhone and iPad, built with SwiftUI and [xtool](https://gith
 Add this source in SideStore or AltStore:
 
 ```
-https://raw.githubusercontent.com/crazyquark/tether/main/source.json
+https://raw.githubusercontent.com/crazyquark/shellmoor/main/source.json
 ```
 
-Or download `Tether.ipa` from the [latest release](https://github.com/crazyquark/tether/releases/latest).
+Or download `Shellmoor.ipa` from the [latest release](https://github.com/crazyquark/shellmoor/releases/latest).
 
 ## Build
 
@@ -45,7 +48,7 @@ It uses the same sources, packages and `Info.plist` as xtool.
   it to App Store Connect. Build numbers get the run number appended (`8` → `8.57`).
 - **Screenshots:** run the workflow by hand with *Take App Store screenshots* checked.
   It captures iPhone 6.9" and iPad 13" screenshots, the sizes App Store Connect requires.
-  The app's demo mode (`-TetherScreenshot servers|terminal|keys|settings`) fills in sample
+  The app's demo mode (`-ShellmoorScreenshot servers|terminal|keys|settings`) fills in sample
   servers and a canned terminal session; nothing connects anywhere. The screenshots are
   attached to the run as the `app-store-screenshots` artifact.
 
@@ -55,7 +58,7 @@ One-time setup:
    the **Admin** role (App Manager is not enough: uploading uses cloud-managed
    distribution signing, which needs Admin). Download the `.p8` file (only possible once)
    and note the key ID and issuer ID. If you already made one for Plain Sign, reuse it.
-2. App Store Connect → Apps → **+ New App**, bundle ID `io.github.crazyquark.tether`.
+2. App Store Connect → Apps → **+ New App**, bundle ID `io.github.crazyquark.shellmoor`.
 3. GitHub → Settings → Secrets and variables → Actions → add `ASC_KEY_ID`,
    `ASC_ISSUER_ID`, `ASC_KEY_P8` (the file's contents) and `APPLE_TEAM_ID`.
 
@@ -65,10 +68,10 @@ After an upload, the **Build status** workflow (run by hand with the build numbe
 App Store workflow prints, e.g. `8.57`) waits until Apple finishes processing the build
 and reports whether it's available in TestFlight.
 
-Testers: App Store Connect → Tether → TestFlight → Internal Testing → create a group, add
+Testers: App Store Connect → Shellmoor → TestFlight → Internal Testing → create a group, add
 team members, and turn on automatic distribution so new builds reach them.
 
-Export compliance: Tether is an SSH client, so it uses encryption. `Info.plist` does not set
+Export compliance: Shellmoor is an SSH client, so it uses encryption. `Info.plist` does not set
 `ITSAppUsesNonExemptEncryption`, so App Store Connect asks about encryption for each build.
 
 ## Release

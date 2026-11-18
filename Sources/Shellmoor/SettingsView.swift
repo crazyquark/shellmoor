@@ -83,7 +83,7 @@ struct SyncSection: View {
         .fileImporter(isPresented: $picking, allowedContentTypes: [.folder]) { result in
             if case .success(let url) = result { sync.link(folder: url) }
         }
-        .confirmationDialog("This folder already has a Tether config",
+        .confirmationDialog("This folder already has a Shellmoor config",
                             isPresented: Binding(get: { sync.conflict != nil },
                                                  set: { if !$0, sync.conflict != nil { sync.unlink() } }),
                             titleVisibility: .visible) {
