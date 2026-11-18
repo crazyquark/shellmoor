@@ -1,0 +1,34 @@
+# Waits until an uploaded build finishes processing in App Store Connect and
+# reports whether it's available in TestFlight. Run by hand from the Actions tab.
+name: Build status
+
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: Build number (e.g. 8.57), as printed by the App Store workflow
+        required: true
+      minutes:
+        description: How long to wait for processing
+        default: "60"
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: app-store
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet "pyjwt[crypto]"
+      - name: Wait for processing
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: python3 scripts/asc_build_status.py "${{ inputs.build }}" "${{ inputs.minutes }}"

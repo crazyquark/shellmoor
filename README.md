@@ -52,13 +52,21 @@ It uses the same sources, packages and `Info.plist` as xtool.
 One-time setup:
 
 1. App Store Connect → Users and Access → Integrations → **Team Keys**: create a key with
-   the **App Manager** role. Download the `.p8` file (only possible once) and note the
-   key ID and issuer ID.
+   the **Admin** role (App Manager is not enough: uploading uses cloud-managed
+   distribution signing, which needs Admin). Download the `.p8` file (only possible once)
+   and note the key ID and issuer ID. If you already made one for Plain Sign, reuse it.
 2. App Store Connect → Apps → **+ New App**, bundle ID `io.github.crazyquark.tether`.
 3. GitHub → Settings → Secrets and variables → Actions → add `ASC_KEY_ID`,
    `ASC_ISSUER_ID`, `ASC_KEY_P8` (the file's contents) and `APPLE_TEAM_ID`.
 
 Until the secrets exist, the TestFlight job only checks that the app builds.
+
+After an upload, the **Build status** workflow (run by hand with the build number the
+App Store workflow prints, e.g. `8.57`) waits until Apple finishes processing the build
+and reports whether it's available in TestFlight.
+
+Testers: App Store Connect → Tether → TestFlight → Internal Testing → create a group, add
+team members, and turn on automatic distribution so new builds reach them.
 
 Export compliance: Tether is an SSH client, so it uses encryption. `Info.plist` does not set
 `ITSAppUsesNonExemptEncryption`, so App Store Connect asks about encryption for each build.

@@ -8,7 +8,8 @@
 #   Produces App Store screenshots as a downloadable artifact.
 #
 # Secrets (Settings > Secrets and variables > Actions):
-#   ASC_KEY_ID, ASC_ISSUER_ID  App Store Connect API key (Team Key, App Manager role)
+#   ASC_KEY_ID, ASC_ISSUER_ID  App Store Connect API key (Team Key, Admin role:
+#                              cloud-managed distribution signing needs Admin)
 #   ASC_KEY_P8                 contents of the AuthKey_XXXX.p8 file
 #   APPLE_TEAM_ID              your 10-character Apple Developer team ID
 name: App Store
