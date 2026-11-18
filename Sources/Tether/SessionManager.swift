@@ -7,6 +7,10 @@ final class SessionManager {
 
     func open(_ host: Host, store: Store) -> SSHSession {
         let s = SSHSession(host: host, store: store)
+        s.onEnded = { [weak self, weak s] in
+            guard let self, let s else { return }
+            self.sessions.removeAll { $0.id == s.id }
+        }
         sessions.append(s)
         s.connect()
         return s

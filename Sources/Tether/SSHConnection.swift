@@ -37,7 +37,8 @@ final class SSHConnection: @unchecked Sendable {
         case connected            // TCP up, SSH handshake in progress
         case shellReady
         case data([UInt8])
-        case closed(String?)      // nil = clean close
+        case closed(String?)      // nil = clean close (we hung up)
+        case ended(exitStatus: Int?)   // the server ended the shell (exit, tmux detach, …)
     }
 
     /// Ask the user whether to trust `key` (OpenSSH line). Call `completion(true)` to accept.
@@ -63,6 +64,10 @@ final class SSHConnection: @unchecked Sendable {
     private var rows: Int
     private var closed = false
     private var userClosing = false
+    /// The server said the shell is over (exit-status, exit-signal or EOF). Anything that fails
+    /// after this is teardown noise, e.g. a terminal reply racing the channel close.
+    private var remoteEnded = false
+    private var exitStatus: Int?
     private let lock = NSLock()
 
     init(config: Config, callbackQueue: DispatchQueue = .main) {
@@ -152,7 +157,7 @@ final class SSHConnection: @unchecked Sendable {
     }
 
     func send(_ bytes: [UInt8]) {
-        guard let shell = lock.withLock({ shell }) else { return }
+        guard let shell = lock.withLock({ remoteEnded ? nil : shell }) else { return }
         var buf = shell.allocator.buffer(capacity: bytes.count)
         buf.writeBytes(bytes)
         shell.writeAndFlush(buf, promise: nil)
@@ -186,12 +191,23 @@ final class SSHConnection: @unchecked Sendable {
     }
 
     fileprivate func finish(_ error: String?) {
-        let (first, byUser): (Bool, Bool) = lock.withLock {
+        let (first, byUser, remote, status): (Bool, Bool, Bool, Int?) = lock.withLock {
             defer { closed = true; shell = nil; root = nil }
-            return (!closed, userClosing)
+            return (!closed, userClosing, remoteEnded, exitStatus)
         }
-        // Errors raised while we tear the connection down ourselves aren't failures.
-        if first { emit(.closed(byUser ? nil : error)) }
+        guard first else { return }
+        // Errors raised while the connection is being torn down (by us or after the server
+        // ended the shell) aren't failures.
+        if byUser { emit(.closed(nil)) }
+        else if remote { emit(.ended(exitStatus: status)) }
+        else { emit(.closed(error)) }
+    }
+
+    fileprivate func shellEnded(status: Int?) {
+        lock.withLock {
+            remoteEnded = true
+            if let status { exitStatus = status }
+        }
     }
 
     fileprivate func received(_ bytes: [UInt8]) { emit(.data(bytes)) }
@@ -327,7 +343,12 @@ private final class ShellHandler: ChannelDuplexHandler, @unchecked Sendable {
     }
 
     func userInboundEventTriggered(context: ChannelHandlerContext, event: Any) {
-        if let e = event as? ChannelEvent, case .inputClosed = e {
+        if let e = event as? SSHChannelRequestEvent.ExitStatus {
+            connection?.shellEnded(status: e.exitStatus)
+        } else if event is SSHChannelRequestEvent.ExitSignal {
+            connection?.shellEnded(status: 128)
+        } else if let e = event as? ChannelEvent, case .inputClosed = e {
+            connection?.shellEnded(status: nil)
             context.close(promise: nil)
         } else {
             context.fireUserInboundEventTriggered(event)

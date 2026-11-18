@@ -56,9 +56,9 @@ do {
 
 // 2. Live sessions against local sshd
 let q = DispatchQueue(label: "cb")
-func session(key: SSHKeyRecord?, trust: Bool, input: String, cols: Int = 80) -> (output: String, closed: String??, sawHostKey: String?) {
+func session(key: SSHKeyRecord?, trust: Bool, input: String, cols: Int = 80) -> (output: String, closed: String??, sawHostKey: String?, ended: Int??) {
     let done = DispatchSemaphore(value: 0)
-    var out = [UInt8](); var closed: String?? = nil; var hostKey: String?
+    var out = [UInt8](); var closed: String?? = nil; var hostKey: String?; var ended: Int?? = nil
     let conn = SSHConnection(config: .init(hostname: "127.0.0.1", port: port, username: args.count > 3 ? args[3] : "root",
                                            privateKey: try! key.map { try KeyManager.load($0) }, storedPassword: nil,
                                            cols: cols, rows: 30), callbackQueue: q)
@@ -71,15 +71,23 @@ func session(key: SSHKeyRecord?, trust: Bool, input: String, cols: Int = 80) -> 
                 conn.resize(cols: 77, rows: 19)
                 q.asyncAfter(deadline: .now() + 0.5) { conn.send(Array("stty size\r".utf8)) }
                 q.asyncAfter(deadline: .now() + 1.5) { conn.close() }
+            } else if input == "LATEWRITES" {
+                // Like a terminal answering queries while tmux detaches: keep writing through
+                // the server's exit-status/EOF/close.
+                conn.send(Array("printf '\\033[c'; exit\r".utf8))
+                for i in 0..<200 { q.asyncAfter(deadline: .now() + .milliseconds(i * 2)) { conn.send(Array("\u{1b}[?1;2c".utf8)) } }
             } else { conn.send(Array(input.utf8)) }
-        case .data(let b): out += b
+        case .data(let b):
+            out += b
+            if input == "LATEWRITES" { conn.send(Array("\u{1b}[?1;2c".utf8)) }
         case .closed(let e): closed = .some(e); done.signal()
+        case .ended(let st): ended = .some(st); done.signal()
         case .connected: break
         }
     }
     conn.connect()
     if done.wait(timeout: .now() + 20) == .timedOut { conn.close(); _ = done.wait(timeout: .now() + 5) }
-    return (String(decoding: out, as: UTF8.self), closed, hostKey)
+    return (String(decoding: out, as: UTF8.self), closed, hostKey, ended)
 }
 
 for name in ["id_ed25519", "id_ecdsa"] {
@@ -87,8 +95,14 @@ for name in ["id_ed25519", "id_ecdsa"] {
     check(r.output.contains("hello-42"), "\(name): shell ran command")
     check(r.output.contains("30 101"), "\(name): PTY size 30x101 applied")
     check(r.output.contains("xterm-256color"), "\(name): TERM set")
-    check(r.closed == .some(nil), "\(name): clean close on exit (\(String(describing: r.closed)))")
+    check(r.ended == .some(0) && r.closed == nil, "\(name): exit reported as ended with status 0 (ended \(String(describing: r.ended)), closed \(String(describing: r.closed)))")
     check(r.sawHostKey?.hasPrefix("ssh-ed25519") == true || r.sawHostKey?.hasPrefix("ecdsa") == true, "host key presented: \(r.sawHostKey ?? "nil")")
+}
+let failing = session(key: records["id_ed25519"], trust: true, input: "exit 3\r")
+check(failing.ended == .some(3), "non-zero exit status passed through (\(String(describing: failing.ended)))")
+for i in 1...5 {
+    let late = session(key: records["id_ed25519"], trust: true, input: "LATEWRITES")
+    check(late.ended != nil && late.closed == nil, "writes racing the server's close are not an error, run \(i) (ended \(String(describing: late.ended)), closed \(String(describing: late.closed)))")
 }
 let rs = session(key: records["id_ed25519"], trust: true, input: "RESIZE")
 check(rs.output.contains("19 77"), "live window-change resize applied")

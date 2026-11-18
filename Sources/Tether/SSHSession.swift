@@ -123,8 +123,23 @@ final class SSHSession: NSObject, Identifiable, TerminalViewDelegate {
             connection = nil
             state = .disconnected(error)
             terminalView.feed(text: "\r\n\u{1b}[2m[\(error ?? "Connection closed")]\u{1b}[0m\r\n")
+        case .ended(let status):
+            dismissPrompts()
+            connection = nil
+            if status == nil || status == 0 {
+                // Clean exit (logout, tmux/byobu detach): the session is over, close it.
+                state = .disconnected(nil)
+                onEnded?()
+            } else {
+                let msg = "Session ended (exit status \(status!))"
+                state = .disconnected(msg)
+                terminalView.feed(text: "\r\n\u{1b}[2m[\(msg)]\u{1b}[0m\r\n")
+            }
         }
     }
+
+    /// Called when the server ends the session cleanly; SessionManager removes the session.
+    @ObservationIgnored var onEnded: (() -> Void)?
 
     func disconnect() {
         dismissPrompts()
