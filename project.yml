@@ -1,0 +1,62 @@
+# XcodeGen spec for building Tether with Xcode (App Store uploads and screenshots in CI).
+# Day-to-day builds use xtool (Package.swift + xtool.yml); both build the same sources and
+# packages. Run scripts/xcode-prepare.sh, not xcodegen directly: it creates the .xcode/
+# inputs this spec refers to.
+name: Tether
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+packages:
+  SwiftTerm:
+    path: Vendor/SwiftTerm
+  swift-nio-ssh:
+    url: https://github.com/apple/swift-nio-ssh.git
+    from: 0.15.1
+  swift-nio:
+    url: https://github.com/apple/swift-nio.git
+    from: 2.105.0
+  swift-crypto:
+    url: https://github.com/apple/swift-crypto.git
+    from: 4.5.2
+  swift-nio-transport-services:
+    url: https://github.com/apple/swift-nio-transport-services.git
+    from: 1.28.0
+targets:
+  Tether:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/Tether
+      - path: .xcode/Assets.xcassets
+    dependencies:
+      - package: SwiftTerm
+      - package: swift-nio-ssh
+        product: NIOSSH
+      - package: swift-nio
+        product: NIOCore
+      - package: swift-nio
+        product: NIOPosix
+      - package: swift-crypto
+        product: Crypto
+      - package: swift-crypto
+        product: CryptoExtras
+      - package: swift-nio-transport-services
+        product: NIOTransportServices
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_NAME: Tether
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.crazyquark.tether
+        INFOPLIST_FILE: .xcode/Info.plist
+        MARKETING_VERSION: ${TETHER_VERSION}
+        CURRENT_PROJECT_VERSION: ${TETHER_BUILD}
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        # Same as Package.swift: keep runtime-only protocol conformances from static
+        # dependencies (swift-atomics' Bool: AtomicValue, needed by every SwiftNIO channel).
+        OTHER_LDFLAGS: ["$(inherited)", "-all_load"]

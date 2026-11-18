@@ -3,7 +3,10 @@ import SwiftUI
 struct ServersView: View {
     @Environment(Store.self) private var store
     @Environment(SessionManager.self) private var sessions
-    @State private var path: [UUID] = []
+    @State private var path: [UUID] = {
+        if ScreenshotMode.screen == .terminal, let id = ScreenshotMode.terminalSessionID { return [id] }
+        return []
+    }()
     @State private var editing: Host?
     @State private var search = ""
 

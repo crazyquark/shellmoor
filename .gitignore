@@ -6,3 +6,7 @@ xcuserdata/
 DerivedData/
 .swiftpm/
 Tests/LinuxHarness/.build
+
+# Generated for Xcode builds (scripts/xcode-prepare.sh)
+/.xcode
+*.xcodeproj

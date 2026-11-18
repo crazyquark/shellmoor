@@ -1,0 +1,140 @@
+# Builds Tether with Xcode on a GitHub macOS runner.
+#
+# - testflight: on every v* tag (scripts/release.sh pushes one) or by hand.
+#   Archives, signs with Xcode cloud signing and uploads to App Store Connect /
+#   TestFlight. Without the App Store Connect secrets it only checks that the
+#   app builds, so tags never fail just because uploading isn't set up yet.
+# - screenshots: by hand (Actions > App Store > Run workflow > screenshots).
+#   Produces App Store screenshots as a downloadable artifact.
+#
+# Secrets (Settings > Secrets and variables > Actions):
+#   ASC_KEY_ID, ASC_ISSUER_ID  App Store Connect API key (Team Key, App Manager role)
+#   ASC_KEY_P8                 contents of the AuthKey_XXXX.p8 file
+#   APPLE_TEAM_ID              your 10-character Apple Developer team ID
+#
+# SwiftTerm (Vendor/SwiftTerm) runs a build-tool plugin, which Xcode normally asks you to
+# trust; CI passes -skipPackagePluginValidation instead.
+name: App Store
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      testflight:
+        description: Build and upload to TestFlight
+        type: boolean
+        default: true
+      screenshots:
+        description: Take App Store screenshots
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-store-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    if: github.event_name == 'push' || inputs.testflight
+    runs-on: macos-latest
+    timeout-minutes: 45
+    # Add protection rules to this environment (e.g. required reviewers) to approve each upload.
+    environment: app-store
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check App Store Connect secrets
+        id: secrets
+        run: |
+          if [[ -n "$ASC_KEY_ID" && -n "$ASC_ISSUER_ID" && -n "$ASC_KEY_P8" && -n "$APPLE_TEAM_ID" ]]; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::App Store Connect secrets are not set, so this run only checks that the app builds."
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Select newest Xcode
+        run: |
+          xcode=$(ls -d /Applications/Xcode_*.app | grep -E '/Xcode_[0-9.]+\.app$' | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          scripts/xcode-prepare.sh "${{ github.run_number }}"
+
+      - name: Build (no upload)
+        if: steps.secrets.outputs.upload != 'true'
+        run: >
+          xcodebuild build -quiet
+          -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation
+          -destination 'generic/platform=iOS'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Archive and upload to TestFlight
+        if: steps.secrets.outputs.upload == 'true'
+        run: |
+          key="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$key"
+          trap 'rm -f "$key"' EXIT
+          auth=(-allowProvisioningUpdates
+                -authenticationKeyPath "$key"
+                -authenticationKeyID "$ASC_KEY_ID"
+                -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+
+          xcodebuild archive -quiet \
+            -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Tether.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" "${auth[@]}"
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Tether.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath "$RUNNER_TEMP/export" \
+            "${auth[@]}"
+          echo "::notice::Uploaded to App Store Connect. The build shows up in TestFlight after Apple finishes processing it (usually 5-30 minutes)."
+
+  screenshots:
+    if: github.event_name == 'workflow_dispatch' && inputs.screenshots
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          xcode=$(ls -d /Applications/Xcode_*.app | grep -E '/Xcode_[0-9.]+\.app$' | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          scripts/xcode-prepare.sh
+
+      - name: Build for Simulator
+        run: >
+          xcodebuild build -quiet
+          -project Tether.xcodeproj -scheme Tether -configuration Release -skipPackagePluginValidation -skipMacroValidation
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/dd"
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Take screenshots
+        run: scripts/screenshots.sh "$RUNNER_TEMP/dd/Build/Products/Release-iphonesimulator/Tether.app" screenshots
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-store-screenshots
+          path: screenshots

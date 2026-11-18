@@ -34,6 +34,35 @@ xtool auth login         # once, with your Apple ID
 xtool dev                # build, sign, install and launch on a connected device
 ```
 
+## App Store / TestFlight (GitHub Actions)
+
+`.github/workflows/app-store.yml` builds the app with Xcode on a GitHub macOS runner
+(free for public repos). `scripts/xcode-prepare.sh` generates the Xcode project from `project.yml`.
+It uses the same sources, packages and `Info.plist` as xtool.
+
+- **TestFlight:** runs on every `v*` tag, so `scripts/release.sh` triggers it. You can also run it
+  by hand from the Actions tab. It archives the app, signs it with Xcode cloud signing and uploads
+  it to App Store Connect. Build numbers get the run number appended (`8` → `8.57`).
+- **Screenshots:** run the workflow by hand with *Take App Store screenshots* checked.
+  It captures iPhone 6.9" and iPad 13" screenshots, the sizes App Store Connect requires.
+  The app's demo mode (`-TetherScreenshot servers|terminal|keys|settings`) fills in sample
+  servers and a canned terminal session; nothing connects anywhere. The screenshots are
+  attached to the run as the `app-store-screenshots` artifact.
+
+One-time setup:
+
+1. App Store Connect → Users and Access → Integrations → **Team Keys**: create a key with
+   the **App Manager** role. Download the `.p8` file (only possible once) and note the
+   key ID and issuer ID.
+2. App Store Connect → Apps → **+ New App**, bundle ID `io.github.crazyquark.tether`.
+3. GitHub → Settings → Secrets and variables → Actions → add `ASC_KEY_ID`,
+   `ASC_ISSUER_ID`, `ASC_KEY_P8` (the file's contents) and `APPLE_TEAM_ID`.
+
+Until the secrets exist, the TestFlight job only checks that the app builds.
+
+Export compliance: Tether is an SSH client, so it uses encryption. `Info.plist` does not set
+`ITSAppUsesNonExemptEncryption`, so App Store Connect asks about encryption for each build.
+
 ## Release
 
 ```sh
