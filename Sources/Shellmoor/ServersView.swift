@@ -83,6 +83,11 @@ struct ServersView: View {
             }
             .sheet(item: $editing) { host in HostEditorView(host: host) }
         }
+        // A session that ends (Ctrl-D, exit, detach) is removed; pop its terminal page here.
+        // TerminalScreen can't do it itself: once the session is gone it's no longer rendered.
+        .onChange(of: sessions.sessions.map(\.id)) { _, ids in
+            path.removeAll { !ids.contains($0) }
+        }
     }
 
     private func connect(_ host: Host) {

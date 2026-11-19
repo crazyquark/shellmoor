@@ -66,10 +66,6 @@ struct TerminalScreen: View {
                 } label: { Image(systemName: "ellipsis.circle") }
             }
         }
-        .onChange(of: sessions.session(session.id) == nil) { _, gone in
-            // The server ended the session cleanly (logout, tmux detach): leave the terminal.
-            if gone { dismiss() }
-        }
         .onAppear { UIApplication.shared.isIdleTimerDisabled = store.settings.keepScreenAwake }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .sheet(item: $session.hostKeyPrompt) { prompt in
