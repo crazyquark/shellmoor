@@ -76,8 +76,12 @@ team members, and turn on automatic distribution so new builds reach them.
 Export compliance: Shellmoor uses standard encryption (SSH, via SwiftNIO SSH and swift-crypto),
 so `Info.plist` sets `ITSAppUsesNonExemptEncryption` to `true`. App Store Connect was answered with
 "standard encryption algorithms", and the app is not offered in France (which would need a
-French encryption declaration). Standard encryption also means a yearly self-classification
-report to the US BIS, due by February 1 for the previous year.
+French encryption declaration). The public source code is not subject to the US EAR (15 CFR
+742.15(b), no notice needed for standard cryptography). For the App Store binary, a
+self-classification report (15 CFR 740.17(e)(3), format in Supplement No. 8 to part 742) is
+filed once: fill in the placeholders in `docs/export/self-classification-report.csv` (no commas
+inside fields) and email it to crypt-supp8@bis.doc.gov and enc@nsa.gov by February 1 of the
+year after the first release.
 
 ## Release
 
