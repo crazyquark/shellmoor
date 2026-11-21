@@ -74,7 +74,9 @@ Testers: App Store Connect → Shellmoor → TestFlight → Internal Testing →
 team members, and turn on automatic distribution so new builds reach them.
 
 Export compliance: Shellmoor uses standard encryption (SSH, via SwiftNIO SSH and swift-crypto),
-so `Info.plist` sets `ITSAppUsesNonExemptEncryption` to `true`. App Store Connect was answered with
+so App Store Connect asks about encryption for each build. Setting
+`ITSAppUsesNonExemptEncryption` in `Info.plist` also needs the `ITSEncryptionExportComplianceCode`
+from App Store Connect (App Information → App Encryption Documentation); without it, uploads are rejected. App Store Connect was answered with
 "standard encryption algorithms", and the app is not offered in France (which would need a
 French encryption declaration). The public source code is not subject to the US EAR (15 CFR
 742.15(b), no notice needed for standard cryptography). For the App Store binary, a
